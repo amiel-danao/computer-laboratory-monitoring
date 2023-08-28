@@ -15,7 +15,7 @@ use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Admin\SubjectController;
 use App\Http\Controllers\Admin\UserLogController;
 use App\Http\Controllers\Faculty\ComputerStatusLogController as FacultyComputerStatusLogController;
-use App\Http\Controllers\Faculty\CourseController  as FacultyCourseController;
+use App\Http\Controllers\Faculty\CourseController as FacultyCourseController;
 use App\Http\Controllers\Faculty\DashboardController as FacultyDashboardController;
 use App\Http\Controllers\Faculty\SubjectController as FacultySubjectController;
 use App\Http\Controllers\Faculty\FacultyController as FacultyFacultyMemberController;
@@ -43,7 +43,13 @@ Route::middleware('alert')->controller(HomeController::class)->group(function ()
     Route::post('/register/student', 'register')->name('register.store');
     Route::get('/login', 'loginForm')->name('login.index');
     Route::post('/login', 'login')->name('login.store');
-    Route::post('/logout',  'logout')->name('logout.delete')->middleware('auth');
+    Route::post('/logout', 'logout')->name('logout.delete')->middleware('auth');
+    Route::get('/token', function (Request $request) {
+
+        $token = csrf_token();
+
+        return $token;
+    });
 });
 
 Route::middleware(['auth', 'alert', 'checkStatus', 'isAdmin'])->prefix('admin')->name('admin.')->group(function () {
