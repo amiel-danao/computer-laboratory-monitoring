@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\FacultyMember;
 use App\Models\Student;
+use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -17,38 +18,43 @@ class UserSeeder extends Seeder
     {
         $data = [
             [
-                'email' => FacultyMember::find(1)->email,
+                'email' => 'faculty1@email.com',
                 'password' => Hash::make('password'),
                 'role_id' => 1,
                 'faculty_member_id' => 1,
+                'full_name' => fake()->userName()
             ],
             [
-                'email' => FacultyMember::find(2)->email,
+                'email' => 'faculty2@email.com',
                 'password' => Hash::make('password'),
                 'role_id' => 2,
                 'faculty_member_id' => 2,
+                'full_name' => fake()->userName()
             ],
             [
-                'email' => Student::find(1)->email,
+                'email' => 'student1@email.com',
                 'password' => Hash::make('password'),
                 'role_id' => 4,
                 'student_id' => 1,
+                'full_name' => fake()->userName()
             ],
             [
-                'email' => Student::find(2)->email,
+                'email' => 'student2@email.com',
                 'password' => Hash::make('password'),
                 'role_id' => 4,
                 'student_id' => 2,
+                'full_name' => fake()->userName()
             ],
             [
-                'email' => Student::find(3)->email,
+                'email' => 'student3@email.com',
                 'password' => Hash::make('password'),
                 'role_id' => 4,
                 'student_id' => 3,
+                'full_name' => fake()->userName()
             ]
         ];
         foreach ($data as $item) {
-            \App\Models\User::create($item);
+            User::create($item);
         }
     }
 }

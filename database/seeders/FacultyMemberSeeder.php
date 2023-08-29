@@ -14,16 +14,10 @@ class FacultyMemberSeeder extends Seeder
     {
         $data = [
             [
-                'first_name' => 'John',
-                'last_name' => 'Doe',
-                'email' => 'admin@email.com',
                 'phone' => '09123456789',
                 'department_id' => 1,
             ],
             [
-                'first_name' => 'Juan',
-                'last_name' => 'Tamad',
-                'email' => 'teacher1@email.com',
                 'phone' => '09123456789',
                 'department_id' => 2,
             ],

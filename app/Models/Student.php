@@ -63,10 +63,10 @@ class Student extends Model
                     break;
             }
         });
-        
+
         $schedule = $query->get();
-        
-        
+
+
 
         if ($schedule) {
             return $schedule;
@@ -83,5 +83,18 @@ class Student extends Model
     public function schoolYear()
     {
         return $this->belongsTo(SchoolYear::class, 'sy_id');
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($student) {
+            // $currentYear = now()->year;
+            // $studentNumber = "{$currentYear}-" . str_pad($student->id, 5, '0', STR_PAD_LEFT);
+
+            // $student->student_no = $studentNumber;
+            // $student->save();
+        });
     }
 }

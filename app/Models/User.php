@@ -26,6 +26,8 @@ class User extends Authenticatable
         'status',
         'password',
         'force_change_password',
+        'full_name',
+        'photo_url'
     ];
 
     /**
@@ -63,17 +65,20 @@ class User extends Authenticatable
     {
         return $this->hasMany(ComputerStatusLog::class, 'user_id');
     }
-    public function logs(){
+    public function logs()
+    {
         return $this->hasMany(Log::class, 'user_id');
     }
-    public function getLogsWithinAWeek(){
+    public function getLogsWithinAWeek()
+    {
         return $this->logs()->where('created_at', '>=', now()->subDays(7))->get();
     }
-    public function getName(){
-        if($this->role->name == 'student'){
-            return $this->student->first_name.' '.$this->student->last_name;
-        }else{
-            return $this->facultyMember->first_name.' '.$this->facultyMember->last_name;
+    public function getName()
+    {
+        if ($this->role->name == 'student') {
+            return $this->student->first_name . ' ' . $this->student->last_name;
+        } else {
+            return $this->facultyMember->first_name . ' ' . $this->facultyMember->last_name;
         }
     }
 }

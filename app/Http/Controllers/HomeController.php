@@ -7,6 +7,7 @@ use App\Models\Log;
 use App\Models\Section;
 use App\Models\Student;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -33,59 +34,66 @@ class HomeController extends Controller
 
         if ($validator->fails()) {
             return response()->json([
-                'status' => 'error',
                 'message' => 'Validation failed.',
                 'errors' => $validator->errors(),
-            ], 409);
+            ], 422);
         }
 
         $data = [];
         $email = Str::lower($request->email);
         $success_msg = 'The user account has been created.';
 
-        switch ($request->role) {
-            case '2':
-                $faculty = FacultyMember::create([
-                    'full_name' => $request->full_name,
-                    'email' => $email,
-                    'phone' => $request->phone,
-                    'photo_url' => $request->photo_url,
-                    'department_id' => 1,
-                ]);
-                $data['faculty_id'] = $faculty->id;
-                break;
+        DB::beginTransaction();
 
-            case '4':
-                $student = Student::create([
-                    'full_name' => $request->full_name,
-                    'email' => $email,
-                    'phone' => $request->phone,
-                    'photo_url' => $request->photo_url,
-                ]);
-                $data['student_id'] = $student->id;
-                break;
+        try {
+            switch ($request->role) {
+                case '2':
+                    $faculty = FacultyMember::create([
+                        'phone' => $request->phone,
+                        'department_id' => 1,
+                    ]);
+                    $data['faculty_id'] = $faculty->id;
+                    break;
+
+                case '4':
+                    $student = Student::create([
+                        'phone' => $request->phone,
+                    ]);
+                    $data['student_id'] = $student->id;
+                    break;
+            }
+
+            $values = [
+                'full_name' => $request->full_name,
+                'email' => $email,
+                'password' => Hash::make($request->password),
+                'photo_url' => $request->photo_url,
+                'role_id' => $request->role,
+            ];
+
+            if (isset($data['faculty_id'])) {
+                $success_msg = 'The faculty member account has been created.';
+                $values['faculty_member_id'] = $data['faculty_id'];
+            }
+            if (isset($data['student_id'])) {
+                $success_msg = 'The student account has been created.';
+                $values['student_id'] = $data['student_id'];
+            }
+
+            $user = User::create($values);
+            $data['user_id'] = $user->id;
+
+            DB::commit(); // This won't be reached due to the error
+        } catch (\Exception $e) {
+            // The transaction will be rolled back due to the error
+            DB::rollback();
+            return response()->json([
+                'message' => $e,
+                'data' => $data,
+            ], 500);
         }
-
-        $values = [
-            'email' => $email,
-            'password' => Hash::make($request->password),
-            'role_id' => $request->role,
-        ];
-
-        if (isset($data['faculty_id'])) {
-            $success_msg = 'The faculty member account has been created.';
-            $values['faculty_member_id'] = $data['faculty_id'];
-        }
-        if (isset($data['student_id'])) {
-            $success_msg = 'The student account has been created.';
-            $values['student_id'] = $data['student_id'];
-        }
-
-        $user = User::create($values);
-        $data['user_id'] = $user->id;
 
         return response()->json([
-            'status' => 'success',
             'message' => $success_msg,
             'data' => $data,
         ], 201);
