@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FacultyMember;
 use App\Models\Log;
-use App\Models\SchoolYear;
 use App\Models\Section;
 use App\Models\Student;
 use App\Models\User;
@@ -11,6 +11,7 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 
 class HomeController extends Controller
 {
@@ -21,44 +22,73 @@ class HomeController extends Controller
     }
     public function register(Request $request)
     {
-
-        $request->validate([
-            'student_no' => 'required',
-            'first_name' => 'required',
-            'last_name' => 'required',
-            'email' => 'required|unique:students,email',
-            'date_of_birth' => 'required|date',
+        $validator = Validator::make($request->all(), [
+            'full_name' => 'required',
             'phone' => 'required',
-            'gender' => 'required',
-            'password' => 'required|confirmed',
-            'password_confirmation' => 'required|same:password',
-            'section_id' => 'required',
-            'section_id' => 'required',
+            'photo_url' => 'required',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required',
+            'role' => 'required',
         ]);
-        try {
-            $id = Student::create([
-                'student_no' => $request->student_no,
-                'first_name' => $request->first_name,
-                'last_name' => $request->last_name,
-                'email' => Str::lower($request->email),
-                'date_of_birth' => $request->date_of_birth,
-                'phone' => $request->phone,
-                'gender' => $request->gender,
-                'address' => $request->address,
-                'section_id' => $request->section_id,
-                'course_id' => Section::find($request->section_id)->course->id,
-                'sy_id' => SchoolYear::where('is_active', true)->first()->id,
-            ])->id;
-            User::create([
-                'email' => Str::lower($request->email),
-                'password' => Hash::make($request->password),
-                'role_id' => 4,
-                'student_id' => $id,
-            ]);
-            return redirect()->back()->with('successToast', 'Registration Successful');
-        } catch (\Throwable $th) {
-            return redirect()->back()->with('errorAlert', $th->getMessage());
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed.',
+                'errors' => $validator->errors(),
+            ], 409);
         }
+
+        $data = [];
+        $email = Str::lower($request->email);
+        $success_msg = 'The user account has been created.';
+
+        switch ($request->role) {
+            case '2':
+                $faculty = FacultyMember::create([
+                    'full_name' => $request->full_name,
+                    'email' => $email,
+                    'phone' => $request->phone,
+                    'photo_url' => $request->photo_url,
+                    'department_id' => 1,
+                ]);
+                $data['faculty_id'] = $faculty->id;
+                break;
+
+            case '4':
+                $student = Student::create([
+                    'full_name' => $request->full_name,
+                    'email' => $email,
+                    'phone' => $request->phone,
+                    'photo_url' => $request->photo_url,
+                ]);
+                $data['student_id'] = $student->id;
+                break;
+        }
+
+        $values = [
+            'email' => $email,
+            'password' => Hash::make($request->password),
+            'role_id' => $request->role,
+        ];
+
+        if (isset($data['faculty_id'])) {
+            $success_msg = 'The faculty member account has been created.';
+            $values['faculty_member_id'] = $data['faculty_id'];
+        }
+        if (isset($data['student_id'])) {
+            $success_msg = 'The student account has been created.';
+            $values['student_id'] = $data['student_id'];
+        }
+
+        $user = User::create($values);
+        $data['user_id'] = $user->id;
+
+        return response()->json([
+            'status' => 'success',
+            'message' => $success_msg,
+            'data' => $data,
+        ], 201);
     }
     public function registrationForm()
     {

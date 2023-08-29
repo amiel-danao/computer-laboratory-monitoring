@@ -40,8 +40,8 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('alert')->controller(HomeController::class)->group(function () {
     Route::get('/', 'home')->name('home.index');
     Route::get('/register', 'registrationForm')->name('register.index');
-    Route::post('/register/student', 'register')->name('register.store');
     Route::get('/login', 'loginForm')->name('login.index');
+    Route::post('/register', 'register')->name('register.store');
     Route::post('/login', 'login')->name('login.store');
     Route::post('/logout', 'logout')->name('logout.delete')->middleware('auth');
     Route::get('/token', function (Request $request) {
