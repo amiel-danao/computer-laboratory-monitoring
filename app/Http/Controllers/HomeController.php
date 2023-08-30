@@ -109,61 +109,49 @@ class HomeController extends Controller
     }
     public function login(Request $request)
     {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required'],
+        $credentials = $request->only('email', 'password');
+        $data = [];
+
+        $validator = Validator::make($request->all(), [
+            'email' => 'required',
+            'password' => 'required',
         ]);
 
-        if (Auth::attempt(['email' => $credentials['email'], 'password' => $credentials['password']])) {
-            // Check if the user is a student and has a schedule today
-            if (Auth::user()->role->name === 'student') {
-                $student = Student::find(Auth::user()->student_id);
-                $hasScheduleCounter = 0;
-                // dd($student->section->schedules);
-                foreach ($student->section->schedules as $schedule) {
-                    if ($schedule->checkIfStudentHasScheduleToday()) {
-                        $hasScheduleCounter++;
-                    }
-
-                }
-                if ($hasScheduleCounter === 0) {
-                    Auth::logout();
-                    return redirect()->back()->with('errorAlert', 'You have no schedule today');
-                }
-            }
-
-            // Authentication was successful...
-            Auth::user()->status = "online";
-            Auth::user()->save();
-
-            Log::create([
-                'user_id' => Auth::id(),
-                'action' => 'login',
-                'time_in' => now(),
-            ]);
-
-            // Save last_activity into session
-            $request->session()->regenerate();
-            $request->session()->put(Auth::id() . '_last_activity', now());
-
-            // Redirect users based on their roles
-            if (Auth::user()->force_change_password) {
-                return redirect()->intended(route(Auth::user()->role->name . '.change-password.index'));
-            }
-            switch (Auth::user()->role->name) {
-                case 'admin':
-
-                    return redirect()->intended(route('admin.dashboard.index'));
-                case 'faculty':
-                    return redirect()->intended(route('faculty.dashboard.index'));
-                case 'student':
-                    return redirect()->intended(route('student.dashboard.index'));
-            }
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed.',
+                'errors' => $validator->errors(),
+            ], 400);
         }
 
-        return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
-        ])->onlyInput('email');
+        if (!Auth::attempt($credentials)) {
+            return response()->json([
+                'message' => 'The provided credentials do not match our records.',
+            ], 401);
+        }
+
+        // Authentication was successful...
+        $user = Auth::user();
+        $user->status = "online";
+        $user->save();
+
+        if ($user->role_id == 4) {
+            $data['student_id'] = $user->student_id;
+        }
+        if ($user->role_id == 1) {
+            $data['faculty_member_id'] = $user->faculty_member_id;
+        }
+
+        Log::create([
+            'user_id' => Auth::id(),
+            'action' => 'login',
+            'time_in' => now(),
+        ]);
+
+        return response()->json([
+            'message' => 'Login successful.',
+            'data' => $data,
+        ], 201);
     }
     public function logout(Request $request)
     {
