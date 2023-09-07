@@ -1,8 +1,22 @@
 const express = require('express');
 const router = express.Router();
-const studentController = require('../controllers/User.controller'); // Import your controller
+const { createUser, readUser, updateUser, deleteUser } = require('../controllers/User.controller');
+const { createComputerStatus, readStatus, updateStatus, deleteStatus } = require('../Controllers/ComputerStatus.controller');
+const { createComputerLog, readComputerLog, updateComputerLog, deleteComputerLog } = require('../Controllers/ComputerLog.controller');
 
-// Define the route and use the controller function
-router.post('/students', [], studentController.createUser);
+router.post('/create', [], createUser);
+router.get('/read/:userId', [], readUser);
+router.patch('/update/:userId', [], updateUser);
+router.delete('/delete/:userId', [], deleteUser);
+
+router.post('/status', [], createComputerStatus);
+router.get('/read_status/:computerId', [], readStatus);
+router.patch('/update_status/:computerId', [], updateStatus);
+router.delete('/delete_status/:computerId', [], deleteStatus);
+
+router.post('/create_log', [], createComputerLog);
+router.get('/read_log/:id', [], readComputerLog);
+router.patch('/update_log/:id', [], updateComputerLog);
+router.delete('/delete_log/:id', [], deleteComputerLog);
 
 module.exports = router;

@@ -1,31 +1,26 @@
 const mongoose = require('../db');
+const Schema = mongoose.Schema;
 
-const studentSchema = new mongoose.Schema({
-    studentId: {
-      type: Number,
-      required: true,
-    },
-    name: {
-      type: String,
-      required: true,
-    },
-    password: {
-      type: String,
-      required: true,
-      minlength: 6, // Minimum length requirement
-    },
-    email: {
-      type: String,
-      required: true,
-      unique: true, // Ensure email is unique
-      validate: {
-        validator: function (value) {
-          // Use a regular expression to validate email format
-          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-        },
-        message: 'Invalid email format',
-      },
-    },
-  });
+const userSchema = new Schema({
+  userId: {
+    type: Number,
+    unique: true
+  },
+  username: {
+    type: String,
+    required: true
+  },
+  password: {
+    type: String,
+    required: true
+  },
+  role: {
+    type: String,
+    enum: ['admin', 'student'],
+    required: true
+  },
+});
 
-module.exports = studentSchema;
+const User = mongoose.model('User', userSchema);
+
+module.exports = { User };

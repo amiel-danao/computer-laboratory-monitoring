@@ -1,43 +1,71 @@
-const express = require('express');
-const router = express.Router();
-const mongoose = require('../db');
-const studentSchema = require('../Models/User.model');
-const Student = mongoose.model('Student', studentSchema);
-
+const { User } = require('../Models/User.model');
 
 function createUser(req,res) {
-    const { studentId, name, password, email } = req.body;
 
-    const studentSchema = new Student({
-        "studentId": studentId,
-        "name": name,
-        "password": password,
-        "email": email
-    });
+    const newUser = new User(req.body);
 
-    studentSchema.save()
+    newUser.save()
     .then(() => {
-        // Respond with a status code 201 (Created) on success
-        res.status(201).json({ message: 'Student created successfully' });
+        res.status(201).json({ message: 'User created successfully.' });
     })
     .catch((err) => {
-        // Handle any errors that occur during the save process
-        res.status(500).json({ error: err.message });
+        res.json({ error: err.message });
     });
 }
 
-// router.get('/read', (req,res) => {
-//     res.send('read');
-// })
+async function readUser(req, res) {
+    const userId = req.params.userId;
 
-// router.get('/update', (req,res) => {
-//     res.send('update');
-// })
+    try {
+        const user = await User.findOne({ userId });
 
-// router.get('/delete', (req,res) => {
-//     res.send('delete');
-// })
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
 
+        res.status(200).json(user);
+    } catch (err) {
+        res.json({ error: err.message });
+    }
+}
 
+async function updateUser(req, res) {
+    const userId = req.params.userId;
+    const updatedFields = req.body;
 
-module.exports = {createUser}
+    try {
+        const user = await User.findOneAndUpdate({ userId }, updatedFields, { new: true });
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        res.status(200).json(user);
+    } catch (err) {
+        res.json({ error: err.message });
+    }
+}
+
+async function deleteUser(req, res) {
+    const userId = req.params.userId;
+
+    try {
+        const user = await User.findOneAndDelete({ userId });
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        res.send('The user has been successfully deleted.');
+    } catch (err) {
+        console.error(err);
+        res.json({ error: err.message });
+    }
+}
+
+module.exports = {
+    createUser,
+    readUser,
+    updateUser,
+    deleteUser
+};
