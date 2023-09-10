@@ -7,5 +7,6 @@ app.use(bodyParser.json());
 app.use('/user', routes);
 app.use('/computer', routes);
 app.use('/log', routes);
+app.use('/specs', routes);
 
 app.listen(3000);
